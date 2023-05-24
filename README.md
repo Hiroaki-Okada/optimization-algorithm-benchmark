@@ -8,15 +8,20 @@ Requires Numpy.
 
 
 # Usage
-(0) Open `main.py` and set the arguments of the optimizer.
-```  
-optimizer = Optimizer(optimizer_type, learning_rate=0.01, epsilon=1e-5, max_iteration=30000)
+(0) Open `main.py` and set the arguments of the main function and optimizer.
 ```
+def main(optimizer_type=adam, function=Beale):
+    optimizer = Optimizer(optimizer_type, learning_rate=0.01, epsilon=1e-5, max_iteration=30000)
+```
+`optimizer_type`: Specify either candidate **gradiend_descent**, **momentum**, **adagrad**, **rmsprop**, or **adam**.  
+`function`: Specify either candidate **Sphere**, **Rosenbrock**, **Beale**, **ThreeHumpCamel**, **Himmelblau** or **MullerBrownPotential**.
+
 (1) Run `main.py`.  
 ```
 python main.py
 ```
 Then, optimization results will be visualized.
+
 
 # Module
 各モジュールの詳細は以下の通り。
@@ -302,11 +307,6 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 
 尖度は分布の期待値近傍領域への集中具合および裾の重さの度合いを定量化する指標である。連続最適化とは関係ないが、機械学習に用いる特徴量を相関係数や分散だけでなく、歪度や尖度の情報も元に前処理している研究があり、面白いと思った。
 
-
-
-
-
-　
 m,vは減衰率β1, β2
 によって割り引かれた勾配の(2乗の)和であるため、始めの頃は値が小さくなってしまいます。例えば値を0.9に設定すると、勾配の1割しか学習に使わないことになります。これでは効率的に学習が進められないため、次の計算を行い調整します。^m=m1−βt1^v=v1−βt2  (3)(4) 　ここでtは更新回数を表します。βt1, βt2は指数的に0に漸近するため、下のグラフの通り11−βt1, 11−βt2は次第に1に近づきます。つまm, vに過去の情報が蓄積されるまでは、それぞれ値を拡大して利用しようということです。そして更新が進むにつれてこの計算の影響が薄れていきます。
 
