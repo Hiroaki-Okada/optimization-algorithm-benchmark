@@ -132,7 +132,7 @@ def plot_potential_surface(function, elev=30, azim=-60):
     ax2.view_init(elev=elev, azim=azim)
 
     plt.tight_layout()
-    plt.savefig(function.name + '.jpeg')
+    plt.savefig('image/' + function.name + '.jpeg')
     # plt.show()
     plt.close()
 
