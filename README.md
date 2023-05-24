@@ -1,11 +1,22 @@
 
 # Overview
-最適化アルゴリズムを用いて 2 変数関数の極小値を探索し、その性能をベンチマークする Python スクリプト群。
+Python code that validates the performance of various continuous optimization algorithms using various benchmark functions.
 
 
 # Environment setup
-Numpy を要する。
+Requires Numpy.
 
+
+# Usage
+(0) Open `main.py` and set the arguments of the optimizer.
+```  
+optimizer = Optimizer(optimizer_type, learning_rate=0.01, epsilon=1e-5, max_iteration=30000)
+```
+(1) Run `main.py`.  
+```
+python main.py
+```
+Then, optimization results will be visualized.
 
 # Module
 各モジュールの詳細は以下の通り。
