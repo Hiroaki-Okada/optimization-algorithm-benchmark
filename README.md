@@ -31,6 +31,7 @@ f'(x) &\approx \frac{f(x+h)-f(x-h)}{2h}
 ## **benchmark.py**
 最適化アルゴリズムの性能をベンチマークするための関数を定義したモジュール。  
 以下の関数が実装されている。
+
 ### **Sphere function**
 $$\begin{align}
 f(x,y) = x^2 + y^2
@@ -40,6 +41,8 @@ $$\begin{align*}
 -50 \leq x \leq 50\\
 -50 \leq y \leq 50
 \end{align*}$$
+
+![2D and 3D plots of Sphere function](image/sphere.jpeg)
 
 ### **Rosenbrock function**
 $$\begin{align}
@@ -53,6 +56,8 @@ $$\begin{align*}
 1 \leq y \leq 3
 \end{align*}$$
 
+![2D and 3D plots of Rosenbrock function](image/rosenbrock.jpeg)
+
 ### **Beale function**
 $$\begin{align}
 f(x,y) = (1.5 - x + xy)^2 + (2.25 - x + xy^2)^2 + (2.625 - x + xy^3)^2
@@ -63,7 +68,9 @@ $$\begin{align*}
 -4 \leq y \leq 4
 \end{align*}$$
 
-### **ThreeHumpCamel function**
+![2D and 3D plots of Beale function](image/beale.jpeg)
+
+### **Three-Hump Camel function**
 $$
 \begin{align}f(x,y) = 2x^2 - 1.05x^4 + \frac{x^6}{6} + xy + y^2
 \end{align}$$
@@ -72,6 +79,8 @@ $$\begin{align*}
 -2 \leq x \leq 2\\
 -2 \leq y \leq 2
 \end{align*}$$
+
+![2D and 3D plots of Three-hump camel function](image/three-hump_camel.jpeg)
 
 ### **Himmelblau function**
 $$\begin{align}
@@ -82,6 +91,8 @@ $$\begin{align*}
 -6 \leq x \leq 6\\
 -6 \leq y \leq 6
 \end{align*}$$
+
+![2D and 3D plots of Himmelblau function](image/himmelblau.jpeg)
 
 ### **Muller-Brown Potential**
 $$
@@ -102,6 +113,7 @@ $$\begin{align*}
 -1.0 \leq y \leq 3.0
 \end{align*}$$
 
+![2D and 3D plots of Muller-Brown Potential](image/muller_brown_potential.jpeg)
 
 ## **optimizer.py**
 オプティマイザークラスと最適化アルゴリズムを実装したモジュール。学習率や収束判定、最大イタレーション数を引数で調整する。以下の最適化アルゴリズムが実装されている。
