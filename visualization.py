@@ -7,19 +7,20 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 def get_potential_surface(function, num=200):
-    x = np.linspace(function.min_x, function.max_x, num)
-    y = np.linspace(function.min_y, function.max_y, num)
-    x, y = np.meshgrid(x, y)
+    x1 = np.linspace(function.min_x, function.max_x, num)
+    x2 = np.linspace(function.min_y, function.max_y, num)
+    x1, x2 = np.meshgrid(x1, x2)
     
-    dim = len(x)
+    dim = len(x1)
     energy_l = np.empty((dim, dim))
     for i in range(dim):
         for j in range(dim):
-            x_i = x[i, j]
-            y_i = y[i, j]
-            energy_l[i, j] = function.evaluate(x_i, y_i)
+            x1_i = x1[i, j]
+            x2_i = x2[i, j]
+            x_i = np.array([x1_i, x2_i])
+            energy_l[i, j] = function.evaluate(x_i)
 
-    return x, y, energy_l
+    return x1, x2, energy_l
 
 
 def plot_optimization_history(history, function):
