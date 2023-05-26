@@ -13,7 +13,7 @@ Requires Numpy.
 def main(optimizer_type=adam, function=Beale):
     optimizer = Optimizer(optimizer_type, learning_rate=0.01, epsilon=1e-5, max_iteration=30000)
 ```
-`optimizer_type`: Specify either candidate **gradiend_descent**, **momentum**, **adagrad**, **rmsprop**, **adam** or **newton_method**.  
+`optimizer_type`: Specify either candidate **gradiend_descent**, **momentum**, **adagrad**, **rmsprop**, or **adam**.  
 `function`: Specify either candidate **Sphere**, **Rosenbrock**, **Beale**, **ThreeHumpCamel**, **Himmelblau** or **MullerBrownPotential**.
 
 (1) Run `main.py`.  
@@ -58,7 +58,7 @@ $$\begin{align*}
 -50 \leq y \leq 50
 \end{align*}$$
 
-![2D and 3D plots of Sphere function](image/sphere.jpeg)
+![2D and 3D plots of Sphere function](image/benchmark_function/1.sphere.jpeg)
 
 ### **Rosenbrock function**
 $$\begin{align}
@@ -72,7 +72,7 @@ $$\begin{align*}
 1 \leq y \leq 3
 \end{align*}$$
 
-![2D and 3D plots of Rosenbrock function](image/rosenbrock.jpeg)
+![2D and 3D plots of Rosenbrock function](image/benchmark_function/2.rosenbrock.jpeg)
 
 ### **Beale function**
 $$\begin{align}
@@ -84,7 +84,7 @@ $$\begin{align*}
 -4 \leq y \leq 4
 \end{align*}$$
 
-![2D and 3D plots of Beale function](image/beale.jpeg)
+![2D and 3D plots of Beale function](image/benchmark_function/3.beale.jpeg)
 
 ### **Three-Hump Camel function**
 $$
@@ -96,7 +96,7 @@ $$\begin{align*}
 -2 \leq y \leq 2
 \end{align*}$$
 
-![2D and 3D plots of Three-hump camel function](image/three-hump_camel.jpeg)
+![2D and 3D plots of Three-hump camel function](image/benchmark_function/4.three-hump_camel.jpeg)
 
 ### **Himmelblau function**
 $$\begin{align}
@@ -108,7 +108,7 @@ $$\begin{align*}
 -6 \leq y \leq 6
 \end{align*}$$
 
-![2D and 3D plots of Himmelblau function](image/himmelblau.jpeg)
+![2D and 3D plots of Himmelblau function](image/benchmark_function/5.himmelblau.jpeg)
 
 ### **Muller-Brown Potential**
 $$
@@ -129,7 +129,7 @@ $$\begin{align*}
 -1.0 \leq y \leq 3.0
 \end{align*}$$
 
-![2D and 3D plots of Muller-Brown Potential](image/muller_brown_potential.jpeg)
+![2D and 3D plots of Muller-Brown Potential](image/benchmark_function/6.muller_brown_potential.jpeg)
 
 ## **optimizer.py**
 オプティマイザークラスと最適化アルゴリズムを実装したモジュール。学習率や収束判定、最大イタレーション数を引数で調整する。以下の最適化アルゴリズムが実装されている。
@@ -161,7 +161,9 @@ $$\begin{align}
 f(x) \approx f(a)+\nabla f(x-a)
 \end{align}$$
 
-これは点 $(a, f(a))$ で $f(x)$ に接する接線の一次式である。従って、この一次式の傾き $\nabla f$ と逆の方向に進めば $f(x)$ の値を小さくできる。以上より、最急降下法の更新式は、注目している関数を現在の点周りで一次のテイラー展開により近似し、得られた一次式の傾きの情報を元に解を更新していることがわかる。  
+これは点 $(a, f(a))$ で $f(x)$ に接する接線の一次式である。従って、この一次式の傾き $\nabla f$ と逆の方向に進めば $f(x)$ の値を小さくできる。以上より、最急降下法の更新式は、注目している関数を現在の点周りで一次のテイラー展開により近似し、得られた一次式の傾きの情報を元に解を更新していることがわかる。最急降下法の更新式の概念図を以下に示した。  
+
+![Gradient descent](image/optimizer/gradient_descent.JPG)
 
 最急降下法は一次収束することが知られており、ニュートン法のように二回微分を求めずに済む代わりに、最適化に要するステップ数が増える。
 
@@ -288,15 +290,15 @@ $$\begin{align}
 x_t = x_{t-1} - H^{-1}\nabla f_{t-1}
 \end{align}$$
 
-Newton's method (ニュートン法) は、現在の解 $(x,y)$ における関数 $f$ の勾配ベクトル $\nabla f$ およびヘッセ行列 $H$ の逆行列の情報を用いて解を更新する操作を繰り返し、関数の local minimum を探索するアルゴリズムである。 
+Newton's method (ニュートン法)または Newton-Rapfson method（ニュートン・ラプソン法）は、現在の解 $(x,y)$ における関数 $f$ の勾配ベクトル $\nabla f$ およびヘッセ行列 $H$ の逆行列の情報を用いて解を更新する操作を繰り返し、関数の local minimum を探索するアルゴリズムである。 
 
-ニュートン法の更新式について、最急降下法と同様にテイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ とし、$f(x)$ の二次のテイラー展開で得られた二次式（後述）が極値を取る $x$ を $x_0$ とし、現在の位置との差分を $\Delta x$ とする。 $x = x_0 + \Delta x$ とすると、$x$ における $f(x)$ の二次のテイラー展開は以下の式で表させる。
+ニュートン法の更新式について、最急降下法と同様にテイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ とし、 $f(x)$ の二次のテイラー展開で得られた二次式（後述）が最小値を取る $x$ を $x_0$ とし、 $x_0$ と現在の位置の差分を $\Delta x$ とする。 $x = x_0 + \Delta x$ とすると、 $x$ における $f(x)$ の二次のテイラー展開は以下の式で表させる。
 
 $$\begin{align}
 f(x)=f(x_0+\Delta x) \approx f(\Delta x)+\nabla f(\Delta x)+\frac{1}{2}\Delta x^TH(\Delta x)\Delta x\\
 \end{align}$$
 
-これは点 $(a, f(a))$ で $f(x)$ に接する曲線の二次式である。この二次式が極値をとるときの $\Delta x$ を求めれば、 $\Delta x$ だけ現在の解 $x$ を更新することで $f(x)$ の値も小さくできることが期待される。具体的には、二次式の微分が 0 となる点を求めれば良い。  
+これは点 $(a, f(a))$ で $f(x)$ に接する曲線の二次式である。この二次式が最小値をとるときの $\Delta x$ を求めれば、 $\Delta x$ だけ現在の解 $x$ を更新することで $f(x)$ の値も小さくできることが期待される。具体的には、二次式の微分が 0 となる点を求めれば良い。  
 
 まず
 
@@ -307,10 +309,10 @@ $$\begin{align}
 なので
 
 $$\begin{align}
-\frac{df}{dx} = \frac{df}{d\Delta x} \approx 0 + \nabla f(\Delta x) + H(\Delta x)
+\frac{df}{dx} = \frac{df}{d\Delta x} \approx 0 + \nabla f(\Delta x) + H(\Delta x)\Delta x
 \end{align}$$
 
-である。従って、二次式が極値とるときの $\Delta x$ は
+である。従って、二次式が最小値をとるときの $\Delta x$ は
 
 $$\begin{align}
 \Delta x = -H(\Delta x)^{-1}\nabla f(\Delta x)
@@ -318,9 +320,11 @@ $$\begin{align}
 
 である。これはニュートン法の更新式における解の更新量と同じである。
 
-以上より、ニュートン法の更新式は、注目している関数を現在の点周りで二次のテイラー展開により近似し、得られた二次式が極値を取る場所に解を更新していることがわかる。  
+以上より、ニュートン法の更新式は、注目している関数を現在の点周りで二次のテイラー展開により近似し、得られた二次式が最小値を取る場所に解を更新していることがわかる。ニュートン法の更新式の概念図を以下に示した。  
 
-ニュートン法は二次収束することが知られており、一次収束する最急降下法よりも高速に最適化を発見できる。一方で、ヘッセ行列の計算には多くのコストを要するため、現実の最適化問題に対しては適用が困難な場合が多い。
+![Newton's method](image/optimizer/newton_method.JPG)
+
+ニュートン法は二次収束することが知られており、一次収束する最急降下法よりも高速に最適化を発見できる。一方で、初期推定値によっては解が発散する可能性や、ヘッセ行列の計算には多くのコストを要するという問題点もある。特にヘッセ行列の計算コストの観点で、現実の最適化問題に対しては適用が困難な場合が多い。
 
 
 # Tips
@@ -367,7 +371,6 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 
 
 # 参考文献
-
 [最適化アルゴリズムを評価するベンチマーク関数まとめ](https://qiita.com/tomitomi3/items/d4318bf7afbc1c835dda)  
 [【決定版】スーパーわかりやすい最適化アルゴリズム -損失関数からAdamとニュートン法-](https://qiita.com/omiita/items/1735c1d048fe5f611f80#7-adam)  
 [「テイラー展開」の分かりやすい解説](https://science-log.com/%e6%95%b0%e5%ad%a6/%e3%80%8c%e3%83%86%e3%82%a4%e3%83%a9%e3%83%bc%e5%b1%95%e9%96%8b%e3%80%8d%e3%81%ae%e5%88%86%e3%81%8b%e3%82%8a%e3%82%84%e3%81%99%e3%81%84%e8%a7%a3%e8%aa%ac/)  
@@ -383,7 +386,6 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 
 
 # ToDo 
-・ニュートン法を実装し、一次収束と二次収束の違いを確認する  
 ・共役勾配法、BFGS法を実装する
 
 <!--
