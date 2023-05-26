@@ -1,3 +1,5 @@
+import pdb
+
 import math
 import random
 
@@ -18,8 +20,9 @@ class Sphere:
     name = 'sphere'
 
     @staticmethod
-    def evaluate(x, y):
-        return x ** 2 + y ** 2
+    def evaluate(x):
+        x1, x2 = x
+        return x1 ** 2 + x2 ** 2
     
     @staticmethod
     def generate_initial_point(seed=0):
@@ -27,14 +30,7 @@ class Sphere:
         x = random.uniform(Sphere.min_x, Sphere.max_x)
         y = random.uniform(Sphere.min_y, Sphere.max_y)
 
-        return x, y
-
-    @staticmethod
-    def generate_random_point():
-        x = random.uniform(Sphere.min_x, Sphere.max_x)
-        y = random.uniform(Sphere.min_y, Sphere.max_y)
-
-        return x, y
+        return np.array([x, y])
 
 
 class Rosenblock:
@@ -45,8 +41,9 @@ class Rosenblock:
     name = 'rosenbrock'
 
     @staticmethod
-    def evaluate(x, y, a=1, b=100):
-        return (a - x) ** 2 + b * (y - x ** 2) ** 2
+    def evaluate(x, a=1, b=100):
+        x1, x2 = x
+        return (a - x1) ** 2 + b * (x2 - x1 ** 2) ** 2
 
     @staticmethod
     def generate_initial_point(seed=4):
@@ -54,14 +51,7 @@ class Rosenblock:
         x = random.uniform(Rosenblock.min_x, Rosenblock.max_x)
         y = random.uniform(Rosenblock.min_y, Rosenblock.max_y)
 
-        return x, y
-
-    @staticmethod
-    def generate_random_point():
-        x = random.uniform(Rosenblock.min_x, Rosenblock.max_x)
-        y = random.uniform(Rosenblock.min_y, Rosenblock.max_y)
-
-        return x, y
+        return np.array([x, y])
 
 
 class Beale:
@@ -72,8 +62,9 @@ class Beale:
     name = 'beale'
 
     @staticmethod
-    def evaluate(x, y):
-        return (1.5 - x + x * y) ** 2 + (2.25 - x + x * (y ** 2)) ** 2 + (2.625 - x + x * (y ** 3)) ** 2
+    def evaluate(x):
+        x1, x2 = x
+        return (1.5 - x1 + x1 * x2) ** 2 + (2.25 - x1 + x1 * (x2 ** 2)) ** 2 + (2.625 - x1 + x1 * (x2 ** 3)) ** 2
     
     @staticmethod
     def generate_initial_point(seed=4):
@@ -81,14 +72,7 @@ class Beale:
         x = random.uniform(Beale.min_x, Beale.max_x)
         y = random.uniform(Beale.min_y, Beale.max_y)
 
-        return x, y
-
-    @staticmethod
-    def generate_random_point():
-        x = random.uniform(Beale.min_x, Beale.max_x)
-        y = random.uniform(Beale.min_y, Beale.max_y)
-
-        return x, y    
+        return np.array([x, y])   
 
 
 class ThreeHumpCamel:
@@ -99,8 +83,9 @@ class ThreeHumpCamel:
     name = 'three-hump_camel'
 
     @staticmethod
-    def evaluate(x, y):
-        return 2 * (x ** 2) - 1.05 * (x ** 4) + (x ** 6) / 6 + x * y + y ** 2
+    def evaluate(x):
+        x1, x2 = x
+        return 2 * (x1 ** 2) - 1.05 * (x1 ** 4) + (x1 ** 6) / 6 + x1 * x2 + x2 ** 2
 
     @staticmethod
     def generate_initial_point(seed=4):
@@ -108,14 +93,7 @@ class ThreeHumpCamel:
         x = random.uniform(ThreeHumpCamel.min_x, ThreeHumpCamel.max_x)
         y = random.uniform(ThreeHumpCamel.min_y, ThreeHumpCamel.max_y)
 
-        return x, y
-
-    @staticmethod
-    def generate_random_point():
-        x = random.uniform(ThreeHumpCamel.min_x, ThreeHumpCamel.max_x)
-        y = random.uniform(ThreeHumpCamel.min_y, ThreeHumpCamel.max_y)
-
-        return x, y
+        return np.array([x, y])
 
 
 class Himmelblau:
@@ -126,8 +104,9 @@ class Himmelblau:
     name = 'himmelblau'
 
     @staticmethod
-    def evaluate(x, y):
-        return (x ** 2 + y - 11) ** 2 + (x + y ** 2 - 7) ** 2
+    def evaluate(x):
+        x1, x2 = x
+        return (x1 ** 2 + x2 - 11) ** 2 + (x1 + x2 ** 2 - 7) ** 2
 
     @staticmethod
     def generate_initial_point(seed=9):
@@ -135,14 +114,7 @@ class Himmelblau:
         x = random.uniform(Himmelblau.min_x, Himmelblau.max_x)
         y = random.uniform(Himmelblau.min_y, Himmelblau.max_y)
 
-        return x, y
-
-    @staticmethod
-    def generate_random_point():
-        x = random.uniform(Himmelblau.min_x, Himmelblau.max_x)
-        y = random.uniform(Himmelblau.min_y, Himmelblau.max_y)
-
-        return x, y
+        return np.array([x, y])
 
 
 class MullerBrownPotential:
@@ -153,7 +125,9 @@ class MullerBrownPotential:
     name = 'muller_brown_potential'
 
     @staticmethod
-    def evaluate(x, y):
+    def evaluate(x):
+        x1, x2 = x
+
         A_i = [-200, -100, -170, 15]
         a_i = [-1, -1, -6.5, 0.7]
         b_i = [0, 0, 11, 0.6]
@@ -163,9 +137,9 @@ class MullerBrownPotential:
 
         energy = 0
         for i in range(4):
-            term_1 = a_i[i] * (x - X_i[i]) ** 2
-            term_2 = b_i[i] * (x - X_i[i]) * (y - Y_i[i])
-            term_3 = c_i[i] * (y - Y_i[i]) ** 2
+            term_1 = a_i[i] * (x1 - X_i[i]) ** 2
+            term_2 = b_i[i] * (x1 - X_i[i]) * (x2 - Y_i[i])
+            term_3 = c_i[i] * (x2 - Y_i[i]) ** 2
             energy += A_i[i] * math.exp(term_1 + term_2 + term_3)
 
         return energy
@@ -176,11 +150,4 @@ class MullerBrownPotential:
         x = random.uniform(MullerBrownPotential.min_x, MullerBrownPotential.max_x)
         y = random.uniform(MullerBrownPotential.min_y, MullerBrownPotential.max_y)
 
-        return x, y
-    
-    @staticmethod
-    def generate_random_point():
-        x = random.uniform(MullerBrownPotential.min_x, MullerBrownPotential.max_x)
-        y = random.uniform(MullerBrownPotential.min_y, MullerBrownPotential.max_y)
-
-        return x, y
+        return np.array([x, y])
