@@ -13,7 +13,7 @@ Requires Numpy.
 def main(optimizer_type=adam, function=Beale):
     optimizer = Optimizer(optimizer_type, learning_rate=0.01, epsilon=1e-5, max_iteration=30000)
 ```
-`optimizer_type`: Specify either candidate **gradiend_descent**, **momentum**, **adagrad**, **rmsprop**, or **adam**.  
+`optimizer_type`: Specify either candidate **gradiend_descent**, **momentum**, **adagrad**, **rmsprop**, **adam** or **newton_method**.  
 `function`: Specify either candidate **Sphere**, **Rosenbrock**, **Beale**, **ThreeHumpCamel**, **Himmelblau** or **MullerBrownPotential**.
 
 (1) Run `main.py`.  
@@ -383,7 +383,7 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 
 
 # ToDo 
-・ニュートン法を実装し、一次収束と二次収束の違いを確認する
+・ニュートン法を実装し、一次収束と二次収束の違いを確認する  
 ・共役勾配法、BFGS法を実装する
 
 <!--
