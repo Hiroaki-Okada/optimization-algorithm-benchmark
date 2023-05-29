@@ -36,13 +36,28 @@ main 関数の引数の `optimizer_type` と `function` をそれぞれ指定し
 
 
 ## **gradient.py**
-勾配を求めるためのモジュール。  
-中心差分法を用いて一階微分を求める。
+勾配ベクトルおよびヘッセ行列を求めるためのモジュール。  
+
+後述の通り、今回の目的は 2 変数関数の local minimum を求めることである。このとき、勾配ベクトル $\nabla f(x)$ およびヘッセ行列 $H(x) = \nabla^2f(x)$ は以下のように表せる。
+
+$$\begin{align}
+\nabla f(x) &= 
+\large\begin{bmatrix}
+\frac{\partial f}{\partial x}\\
+\frac{\partial f}{\partial y}
+\end{bmatrix}\\
+H(x) &= 
+\large\begin{bmatrix}
+\frac{\partial^2 f}{\partial x^2} & \frac{\partial^2 f}{\partial x \partial y}\\
+\frac{\partial^2 f}{\partial y \partial x} & \frac{\partial^2 f}{\partial y^2}
+\end{bmatrix}
+\end{align}$$
+
+なお、全ての微分は中心差分法を用いて計算される。
 
 $$\begin{align}
 f'(x) &\approx \frac{f(x+h)-f(x-h)}{2h}
 \end{align}$$
-
 
 ## **benchmark.py**
 最適化アルゴリズムの性能をベンチマークするための関数を定義したモジュール。  
@@ -134,18 +149,7 @@ $$\begin{align*}
 ## **optimizer.py**
 オプティマイザークラスと最適化アルゴリズムを実装したモジュール。学習率や収束判定、最大イタレーション数を引数で調整する。以下の最適化アルゴリズムが実装されている。
 
-$\alpha$ は学習率、 $\beta、 \beta_1、 \beta_2$ は減衰率などを表すハイパーパラメータであり、 $\epsilon$ はゼロ除算を避けるための微小な値である。
-また、 $\nabla f$ はベンチマーク関数の勾配ベクトルであり、以下の式で表される。
-
-$$\begin{align}
-\nabla f =
-\Large\begin{pmatrix}
-\frac{\partial f}{\partial x} \\
-\frac{\partial f}{\partial y}
-\end{pmatrix}
-\end{align}$$
-
-$\nabla f$ は `gradient.py` に実装された中心差分法によって計算される。
+$\alpha$ は学習率、 $\beta、 \beta_1、 \beta_2$ は減衰率などを表すハイパーパラメータであり、 $\epsilon$ はゼロ除算を避けるための微小な値である。また、 $\nabla f(x)$ と $H(x)$ は、それぞれベンチマーク関数の勾配ベクトルとヘッセ行列である。以下の説明では $\nabla f$ および $H$ と簡略化した記法を適宜用いる。
 
 ### **Gradient descent**
 
@@ -284,13 +288,16 @@ Adam (Adaptive moment estimation) は Momentum と RMSProp を組み合わせた
 
 また、バイアス補正は最適化初期の探索効率を向上する目的で行われる。Adam の更新式における $m$ と $v$ は 0 ベクトルで初期化されているので、 $\beta_1$ と $\beta_2$ が大きい最適化の初期段階では各モーメントの推定値が 0 ベクトルの方向に向かいやすいというバイアスが働く。そこで、最適化初期のモーメントの推定値を拡大する補正を行う。即ち、バイアス補正の式の分母の $1-\beta_1^t$ と $1-\beta_2^t$ は、最適化初期には 1 に近い値をとるが、イタレーションが進むにつれて指数的に 0 に漸近する（ $0 \leq\beta_1, \beta_2\leq$ のため）。これにより、徐々にバイアス補正を緩和した最適化が可能となる。
 
+### **共役勾配法**
+実装済み。随時加筆予定。
+
 ### **Newton's method**
 
 $$\begin{align}
 x_t = x_{t-1} - H^{-1}\nabla f_{t-1}
 \end{align}$$
 
-Newton's method (ニュートン法)または Newton-Rapfson method（ニュートン・ラプソン法）は、現在の解 $(x,y)$ における関数 $f$ の勾配ベクトル $\nabla f$ およびヘッセ行列 $H$ の逆行列の情報を用いて解を更新する操作を繰り返し、関数の local minimum を探索するアルゴリズムである。 
+Newton's method （ニュートン法）または Newton-Rapfson method（ニュートン・ラプソン法）は、現在の解 $(x,y)$ における関数 $f$ の勾配ベクトル $\nabla f$ およびヘッセ行列 $H$ の逆行列の情報を用いて解を更新する操作を繰り返し、関数の local minimum を探索するアルゴリズムである。 
 
 ニュートン法の更新式について、最急降下法と同様にテイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ とし、 $f(x)$ の二次のテイラー展開で得られた二次式（後述）が最小値を取る $x$ を $x_0$ とし、 $x_0$ と現在の位置の差分を $\Delta x$ とする。 $x = x_0 + \Delta x$ とすると、 $x$ における $f(x)$ の二次のテイラー展開は以下の式で表させる。
 
@@ -325,6 +332,9 @@ $$\begin{align}
 ![Newton's method](image/optimizer/newton_method.JPG)
 
 ニュートン法は二次収束することが知られており、一次収束する最急降下法よりも高速に最適化を発見できる。一方で、初期推定値によっては解が発散する可能性や、ヘッセ行列の計算には多くのコストを要するという問題点もある。特にヘッセ行列の計算コストの観点で、現実の最適化問題に対しては適用が困難な場合が多い。
+
+### **BFGS method**
+未実装。随時加筆予定。
 
 
 # Tips
