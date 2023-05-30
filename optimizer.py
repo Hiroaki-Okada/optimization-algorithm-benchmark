@@ -96,6 +96,28 @@ def adam(function, x, learning_rate, epsilon, max_iteration, beta_1=0.9, beta_2=
     return history
 
 
+def adabelief(function, x, learning_rate, epsilon, max_iteration, beta_1=0.9, beta_2=0.999):
+    history = []
+    m = np.zeros(2)
+    v = np.zeros(2)
+    for itr in range(1, max_iteration + 1):
+        grad = get_gradient(function.evaluate, x)
+        grad_norm = np.sum(grad ** 2) ** 0.5
+        history.append([x[0], x[1], function.evaluate(x), grad_norm])
+
+        # AdaBelief 更新式
+        learning_rate_next = learning_rate * (np.sqrt(1 - np.power(beta_2, itr)) / (1 - np.power(beta_1, itr)))
+
+        m = beta_1 * m + (1 - beta_1) * grad
+        v = beta_2 * v + (1 - beta_2) * np.square(grad - m) + epsilon
+        x -= learning_rate_next * m / (np.sqrt(v) + epsilon)
+
+        if np.all(np.abs(grad) < epsilon):
+            break
+
+    return history
+
+
 def conjugate_gradient(function, x, learning_rate, epsilon, max_iteration):
     history = []
     for itr in range(max_iteration):

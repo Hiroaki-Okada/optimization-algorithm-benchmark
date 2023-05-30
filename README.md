@@ -13,7 +13,7 @@ Requires Numpy.
 def main(optimizer_type=adam, function=Beale):
     optimizer = Optimizer(optimizer_type, learning_rate=0.01, epsilon=1e-5, max_iteration=30000)
 ```
-`optimizer_type`: Specify either candidate **gradiend_descent**, **momentum**, **adagrad**, **rmsprop**, or **adam**.  
+`optimizer_type`: Specify either candidate **gradiend_descent**, **momentum**, **adagrad**, **rmsprop**, **adam**, **adabelief** and **conjugate_gradient**.  
 `function`: Specify either candidate **Sphere**, **Rosenbrock**, **Beale**, **ThreeHumpCamel**, **Himmelblau** or **MullerBrownPotential**.
 
 (1) Run `main.py`.  
@@ -284,9 +284,36 @@ $$\begin{align}
 x_t = x_{t-1} - \alpha\frac{\sqrt{1-\beta_2^t}}{1-\beta_1^t}\frac{m_t}{\sqrt{v_t}+\epsilon}
 \end{align}$$
 
-Adam (Adaptive moment estimation) は Momentum と RMSProp を組み合わせたアルゴリズムである。 勾配の一次モーメント $m$ の更新式は Momentum、勾配の二次モーメント $v$ の更新式は RMSProp と同じであり、過去の勾配の指数移動平均を考慮して解の更新方向を調整し、過去の勾配の二乗和の指数移動平均を考慮して学習率を調整していることがわかる。  
+Adam (Adaptive Moment Estimation) は Momentum と RMSProp を組み合わせたアルゴリズムである。 勾配の一次モーメント $m$ の更新式は Momentum、勾配の二次モーメント $v$ の更新式は RMSProp と同じであり、過去の勾配の指数移動平均を考慮して解の更新方向を調整し、過去の勾配の二乗和の指数移動平均を考慮して学習率を調整していることがわかる。  
 
 また、バイアス補正は最適化初期の探索効率を向上する目的で行われる。Adam の更新式における $m$ と $v$ は 0 ベクトルで初期化されているので、 $\beta_1$ と $\beta_2$ が大きい最適化の初期段階では各モーメントの推定値が 0 ベクトルの方向に向かいやすいというバイアスが働く。そこで、最適化初期のモーメントの推定値を拡大する補正を行う。即ち、バイアス補正の式の分母の $1-\beta_1^t$ と $1-\beta_2^t$ は、最適化初期には 1 に近い値をとるが、イタレーションが進むにつれて指数的に 0 に漸近する（ $0 \leq\beta_1, \beta_2\leq$ のため）。これにより、徐々にバイアス補正を緩和した最適化が可能となる。
+
+### **AdaBelief**
+
+$$\begin{align}
+m_t &= \beta_1 m_{t-1} + (1-\beta_1)\nabla f_{t-1}\\
+s_t &= \beta_2 s_{t-1} + (1-\beta_2)(\nabla f_{t-1} - m_t)^2 + \epsilon
+\end{align}$$
+
+バイアス補正を行い
+
+$$\begin{align}
+\hat{m_t} &= \frac{m_t}{1-\beta_1^t}\\
+\hat{s_t} &= \frac{s_t}{1-\beta_2^t}\\
+x_t       &= x_{t-1} - \alpha\frac{\hat{m_t}}{\sqrt{\hat{s_t}}+\epsilon}\\
+\end{align}$$
+
+上 3 つの式をまとめて以下の更新式を得る。
+
+$$\begin{align}
+x_t = x_{t-1} - \alpha\frac{\sqrt{1-\beta_2^t}}{1-\beta_1^t}\frac{m_t}{\sqrt{s_t}+\epsilon}
+\end{align}$$
+
+AdaBelief (Adapting Stepsizes by the Belief in Observed Gradients) は Adam を改良したアルゴリズムである。AdaBelief の更新式は Adam と似ているが、 $s_t$ (Adam における $v_t$ )の更新方法に違いがある。即ち、Adam において $v_t$ は勾配の二乗和のみを用いて更新されていたが、AdaBelief では勾配の一次モーメントも加味して更新されている。この差異について簡単に述べる。  
+
+まず、勾配の一次モーメントは勾配の指数移動平均のことを指している。指数移動平均とは古いデータほど指数関数的に重みを減少させて平滑化を行う手法である。よって、勾配の一次モーメントは現在の勾配と過去の勾配の情報を利用して計算された勾配の期待値であると言える。ここで $s_t$ の更新式に注目すると、 $(\nabla f_{t-1} - m_t)^2$ の部分は、現在の勾配および勾配の期待値の差分をとった二乗和を計算していることになる。従って、現在の勾配と勾配の期待値の値が近ければ $(\nabla f_{t-1} - m_t)^2$ は小さくなり、結果的に $s_t$ も小さくなる。このとき、 $s_t$ は学習率 $\alpha$ に対して分母に作用するので、 $\alpha$ が大きくなる。これは、現在の勾配が勾配の期待値と近ければ、学習率を大きくとって大幅に解を更新することを意味する。逆に現在の勾配が勾配の期待値とかけ離れていれば、学習率を小さくとって丁寧に解を更新していく。  
+
+以上より、AdaBelief は現在の勾配の信用度合 (belief) を元に適用的 (adaptive) に解を更新する手法であると解釈できる。
 
 ### **共役勾配法**
 実装済み。随時加筆予定。
@@ -384,19 +411,24 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 [最適化アルゴリズムを評価するベンチマーク関数まとめ](https://qiita.com/tomitomi3/items/d4318bf7afbc1c835dda)  
 [【決定版】スーパーわかりやすい最適化アルゴリズム -損失関数からAdamとニュートン法-](https://qiita.com/omiita/items/1735c1d048fe5f611f80#7-adam)  
 [「テイラー展開」の分かりやすい解説](https://science-log.com/%e6%95%b0%e5%ad%a6/%e3%80%8c%e3%83%86%e3%82%a4%e3%83%a9%e3%83%bc%e5%b1%95%e9%96%8b%e3%80%8d%e3%81%ae%e5%88%86%e3%81%8b%e3%82%8a%e3%82%84%e3%81%99%e3%81%84%e8%a7%a3%e8%aa%ac/)  
+[接線の方程式の求め方【微分】法線の方程式も解説！](https://rikeilabo.com/tangent-and-normal)  
 [最急降下法とニュートン法の比較](http://techtipshoge.blogspot.com/2016/07/blog-post.html)  
 [6.1.4：Momentum【ゼロつく1のノート(実装)】](https://www.anarchive-beta.com/entry/2020/08/10/180000)  
 [6.1.5：AdaGrad【ゼロつく1のノート(実装)】](https://www.anarchive-beta.com/entry/2020/08/11/180000)  
 [6.1.x：RMSProp【ゼロつく1のノート(実装)】](https://www.anarchive-beta.com/entry/2020/08/12/180000)  
 [6.1.6：Adam【ゼロつく1のノート(実装)】](https://www.anarchive-beta.com/entry/2020/08/13/180000)  
 [俺はまだ本当のAdamを理解していない](https://qiita.com/exp/items/99145796a87cc6cd47e1)  
-
+[Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980)  
+[出きたてホヤホヤ！最新オプティマイザー「AdaBelief」を解説！](https://arxiv.org/abs/2010.07468)  
+[AdaBelief Optimizer: Adapting Stepsizes by the Belief in Observed Gradients](https://arxiv.org/abs/2010.07468)  
+[共役勾配法](https://qiita.com/Dason08/items/27559e192a6a977dd5e5)  
+[非線形共役勾配法](https://ja.wikipedia.org/wiki/%E9%9D%9E%E7%B7%9A%E5%BD%A2%E5%85%B1%E5%BD%B9%E5%8B%BE%E9%85%8D%E6%B3%95)  
 [移動平均](https://ja.wikipedia.org/wiki/%E7%A7%BB%E5%8B%95%E5%B9%B3%E5%9D%87)  
 [モーメント(moment)を直感的・具体的に理解する　〜平均、分散、歪度、尖度 etc〜](https://www.hello-statisticians.com/explain-terms-cat/moment1.html)  
 
 
 # ToDo 
-・共役勾配法、BFGS法を実装する
+・BFGS法を実装する
 
 <!--
 ## **gradient.py**
