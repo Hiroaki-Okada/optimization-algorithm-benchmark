@@ -3,9 +3,10 @@ import pdb
 import numpy as np
 
 from gradient import get_gradient, get_hessian
+from vibration import vibration_analysis
 
 
-def gradient_descent(function, x, learning_rate, epsilon, max_iteration):
+def gradient_descent(function, x, learning_rate, epsilon, max_iteration, eigen_check):
     history = []
     for itr in range(max_iteration):
         grad = get_gradient(function.evaluate, x)
@@ -17,10 +18,12 @@ def gradient_descent(function, x, learning_rate, epsilon, max_iteration):
         if np.all(np.abs(grad) < epsilon):
             break
 
-    return history
+    eigen_val = vibration_analysis(function.evaluate, x, eigen_check)
+
+    return history, grad, eigen_val
 
 
-def momentum(function, x, learning_rate, epsilon, max_iteration, beta=0.9):
+def momentum(function, x, learning_rate, epsilon, max_iteration, eigen_check, beta=0.9):
     history = []
     v = np.zeros(2)
     for itr in range(1, max_iteration + 1):
@@ -35,10 +38,12 @@ def momentum(function, x, learning_rate, epsilon, max_iteration, beta=0.9):
         if np.all(np.abs(grad) < epsilon):
             break
 
-    return history
+    eigen_val = vibration_analysis(function.evaluate, x, eigen_check)
+
+    return history, grad, eigen_val
 
     
-def adagrad(function, x, learning_rate, epsilon, max_iteration):
+def adagrad(function, x, learning_rate, epsilon, max_iteration, eigen_check):
     history = []
     v = np.zeros(2)
     for itr in range(1, max_iteration + 1):
@@ -53,10 +58,12 @@ def adagrad(function, x, learning_rate, epsilon, max_iteration):
         if np.all(np.abs(grad) < epsilon):
             break
 
-    return history
+    eigen_val = vibration_analysis(function.evaluate, x, eigen_check)
+
+    return history, grad, eigen_val
 
 
-def rmsprop(function, x, learning_rate, epsilon, max_iteration, beta=0.9):
+def rmsprop(function, x, learning_rate, epsilon, max_iteration, eigen_check, beta=0.9):
     history = []
     v = np.zeros(2)
     for itr in range(1, max_iteration + 1):
@@ -71,10 +78,12 @@ def rmsprop(function, x, learning_rate, epsilon, max_iteration, beta=0.9):
         if np.all(np.abs(grad) < epsilon):
             break
 
-    return history
+    eigen_val = vibration_analysis(function.evaluate, x, eigen_check)
+
+    return history, grad, eigen_val
 
 
-def adam(function, x, learning_rate, epsilon, max_iteration, beta_1=0.9, beta_2=0.999):
+def adam(function, x, learning_rate, epsilon, max_iteration, eigen_check, beta_1=0.9, beta_2=0.999):
     history = []
     m = np.zeros(2)
     v = np.zeros(2)
@@ -92,11 +101,13 @@ def adam(function, x, learning_rate, epsilon, max_iteration, beta_1=0.9, beta_2=
 
         if np.all(np.abs(grad) < epsilon):
             break
-        
-    return history
+
+    eigen_val = vibration_analysis(function.evaluate, x, eigen_check)
+       
+    return history, grad, eigen_val
 
 
-def adabelief(function, x, learning_rate, epsilon, max_iteration, beta_1=0.9, beta_2=0.999):
+def adabelief(function, x, learning_rate, epsilon, max_iteration, eigen_check, beta_1=0.9, beta_2=0.999):
     history = []
     m = np.zeros(2)
     v = np.zeros(2)
@@ -115,10 +126,13 @@ def adabelief(function, x, learning_rate, epsilon, max_iteration, beta_1=0.9, be
         if np.all(np.abs(grad) < epsilon):
             break
 
-    return history
+
+    eigen_val = vibration_analysis(function.evaluate, x, eigen_check)
+
+    return history, grad, eigen_val
 
 
-def conjugate_gradient(function, x, learning_rate, epsilon, max_iteration):
+def conjugate_gradient(function, x, learning_rate, epsilon, max_iteration, eigen_check):
     history = []
     for itr in range(max_iteration):
         grad = get_gradient(function.evaluate, x)
@@ -143,10 +157,12 @@ def conjugate_gradient(function, x, learning_rate, epsilon, max_iteration):
         if np.all(np.abs(grad) < epsilon):
             break
 
-    return history
+    eigen_val = vibration_analysis(function.evaluate, x, eigen_check)
+
+    return history, grad, eigen_val
 
 
-def newton_method(function, x, learning_rate, epsilon, max_iteration):
+def newton_method(function, x, learning_rate, epsilon, max_iteration, eigen_check):
     history = []
     for itr in range(max_iteration):
         grad = get_gradient(function.evaluate, x)
@@ -160,18 +176,44 @@ def newton_method(function, x, learning_rate, epsilon, max_iteration):
         if np.all(np.abs(grad) < epsilon):
             break
 
-    return history
+    eigen_val = vibration_analysis(function.evaluate, x, eigen_check)
+
+    return history, grad, eigen_val
 
 
 class Optimizer:
-    def __init__(self, optimizer, learning_rate=0.01, epsilon=1e-5, max_iteration=30000):
+    def __init__(self, optimizer, learning_rate=0.01, epsilon=1e-5, max_iteration=30000, eigen_check=True):
         self.optimizer = optimizer
         self.learning_rate = learning_rate
         self.epsilon = epsilon
         self.max_iteration = max_iteration
+        self.eigen_check = eigen_check
 
     def optimize(self, function):
         initial_point = function.generate_initial_point()
-        result = self.optimizer(function, initial_point, self.learning_rate, self.epsilon, self.max_iteration)
+        history, grad, eigen_val = self.optimizer(function, initial_point, self.learning_rate, self.epsilon, self.max_iteration, self.eigen_check)
+        self.check_convengence(grad, eigen_val)
 
-        return result
+        return history
+    
+    def check_convengence(self, grad, eigen_val):
+        print('\nOptimization results')
+        print('Gradient (df/dx):', grad[0])
+        print('Gradirnt (df/dy):', grad[1])
+        print('Eigenvalue 1    :', eigen_val[0])
+        print('Eigenvalue 2    :', eigen_val[1])
+        print('')
+
+        if np.all(np.abs(grad) < self.epsilon):
+            print('Succeeded to find local minimum or maximum')
+        else:
+            print('Falied to find local minimum or maximum')
+
+        if not self.eigen_check:
+            print('Eigenvalue checks were skipped.')
+        elif np.all(eigen_val > 0):
+            print('Minimum point was found')
+        elif (eigen_val[0] > 0 and eigen_val[1] < 0) or (eigen_val[0] < 0 and eigen_val[1] > 0):
+            print('1st-order saddle point was found')
+        else:
+            print('Converged on an inappropriate point')
