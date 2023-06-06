@@ -40,7 +40,7 @@ Then, optimization results will be visualized.
 main 関数の引数の `optimizer_type` と `function` をそれぞれ指定し `python run.py` で本プログラムを実行する。　　
 
 ## **vibration.py**
-最適化で得られた点におけるヘッセ行列の固有値と固有ベクトルを、や媚法を用いて求めるためのモジュール。  
+最適化で得られた点におけるヘッセ行列の固有値と固有ベクトルを、ヤコビ法を用いて求めるためのモジュール。  
 
 
 ## **visualization.py**
