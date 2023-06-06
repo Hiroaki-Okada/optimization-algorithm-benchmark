@@ -150,4 +150,7 @@ class MullerBrownPotential:
         x = random.uniform(MullerBrownPotential.min_x, MullerBrownPotential.max_x)
         y = random.uniform(MullerBrownPotential.min_y, MullerBrownPotential.max_y)
 
+        x = -0.8
+        y = 0.75
+        
         return np.array([x, y])

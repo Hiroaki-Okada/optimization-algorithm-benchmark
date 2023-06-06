@@ -25,8 +25,10 @@ def vibration_analysis(f, x, eigen_check, epsilon=1e-6):
     eigen_vec_2 = [math.sin(theta_0), -math.cos(theta_0)]
     eigen_vec = np.array([eigen_vec_1, eigen_vec_2])
 
-    eigen_val, eigen_vec = np.linalg.eig(hessian)
+    # numpy で計算すると x, y が入れ替わるので注注意
+    # eigen_val, eigen_vec = np.linalg.eig(hessian)
+    
     # print(eigen_val)
     # print(eigen_vec)
 
-    return eigen_val
+    return eigen_val, eigen_vec

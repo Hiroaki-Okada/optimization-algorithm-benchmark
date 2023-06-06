@@ -10,8 +10,8 @@ Requires Numpy.
 # Usage
 (0) Open `main.py` and set the arguments of the main function and optimizer.
 ```
-def main(optimizer_type=adam, function=Beale):
-    optimizer = Optimizer(optimizer_type, learning_rate=0.01, epsilon=1e-5, max_iteration=30000)
+def main(optimizer_type=newton_method, second_optimizer_type=adam, function=MullerBrownPotential):
+    optimizer = Optimizer(optimizer_type, second_optimizer_type, learning_rate=0.01)
 ```
 `optimizer_type`: Specify either candidate **gradiend_descent**, **momentum**, **adagrad**, **rmsprop**, **adam**, **adabelief** and **conjugate_gradient**.  
 `function`: Specify either candidate **Sphere**, **Rosenbrock**, **Beale**, **ThreeHumpCamel**, **Himmelblau** or **MullerBrownPotential**.
@@ -23,6 +23,16 @@ python main.py
 Then, optimization results will be visualized.
 
 
+# Behavior
+`optimizer_type` で指定した最適化アルゴリズム（オプティマイザー）を用いて、 `function` で指定されたベンチマーク関数の極値を探索する。  
+
+基本的には local minimum を探索するが、オプティマイザーにニュートン法を用いた場合、初期値に依存して saddle point に到達することがある。この場合、`second_optimizer_type` で指定されたオプティマイザーを用いて、 saddle point から虚振動方向への最小エネルギー経路（MEP）を自動で探索する。  
+
+極値に到達 or 最大イタレーション回数を超えた段階で最適化を打ち切り、その点におけるヘッセ行列の固有値と固有ベクトルをヤコビ法を用いて求めて収束判定を行う。最後に、最適化における座標の変遷を 2 次元・ 3 次元プロット上に示し、勾配の変遷も可視化する。
+
+オプティマイザーの `eigen_check` オプションが `False` の場合、固有値・固有ベクトルの解析はスキップされ、 MEP 探索も行われない。また、`find_mep` オプションが `False` であれば、`eigen_check` が `True` でも MEP 探索は行われない。
+
+
 # Module
 各モジュールの詳細は以下の通り。
 ## **main.py**
@@ -30,8 +40,7 @@ Then, optimization results will be visualized.
 main 関数の引数の `optimizer_type` と `function` をそれぞれ指定し `python run.py` で本プログラムを実行する。　　
 
 ## **vibration.py**
-最適化で得られた点におけるヘッセ行列の固有値と固有ベクトルを求めるためのモジュール。  
-今回はヤコビ法を用いて実装した。
+最適化で得られた点におけるヘッセ行列の固有値と固有ベクトルを、や媚法を用いて求めるためのモジュール。  
 
 
 ## **visualization.py**
@@ -44,9 +53,9 @@ main 関数の引数の `optimizer_type` と `function` をそれぞれ指定し
 
 後述の通り、今回の目的は 2 変数関数の local minimum を求めることである。このとき、勾配ベクトル $\nabla f(x)$ およびヘッセ行列 $H(x) = \nabla^2f(x)$ は以下のように表せる。
 
-$$\begin{align}
+$$\large\begin{align}
 \nabla f(x) &= 
-\large\begin{bmatrix}
+\begin{bmatrix}
 \frac{\partial f}{\partial x}\\
 \frac{\partial f}{\partial y}
 \end{bmatrix}\\
@@ -59,20 +68,20 @@ H(x) &=
 
 なお、全ての微分は中心差分法を用いて計算される。
 
-$$\begin{align}
+$$\large\begin{align}
 f'(x) &\approx \frac{f(x+h)-f(x-h)}{2h}
 \end{align}$$
 
 ## **benchmark.py**
 最適化アルゴリズムの性能をベンチマークするための関数を定義したモジュール。  
-以下の関数が実装されている。
+以下の関数が実装されており、再現性を取るため初期値を乱数シードで固定している。
 
 ### **Sphere function**
-$$\begin{align}
+$$\large\begin{align}
 f(x,y) = x^2 + y^2
 \end{align}$$
 
-$$\begin{align*}
+$$\large\begin{align*}
 -50 \leq x \leq 50\\
 -50 \leq y \leq 50
 \end{align*}$$
@@ -80,13 +89,15 @@ $$\begin{align*}
 ![2D and 3D plots of Sphere function](image/benchmark_function/1.sphere.jpeg)
 
 ### **Rosenbrock function**
-$$\begin{align}
+$$\large\begin{align}
 f(x,y) = (a-x)^2 + b(y-x^2)^2
 \end{align}$$
 
-$$a=1, b=100$$
+$$\large\begin{align*}
+a=1, b=100
+\end{align*}$$
 
-$$\begin{align*}
+$$\large\begin{align*}
 -2 \leq x \leq 2\\
 1 \leq y \leq 3
 \end{align*}$$
@@ -94,11 +105,11 @@ $$\begin{align*}
 ![2D and 3D plots of Rosenbrock function](image/benchmark_function/2.rosenbrock.jpeg)
 
 ### **Beale function**
-$$\begin{align}
+$$\large\begin{align}
 f(x,y) = (1.5 - x + xy)^2 + (2.25 - x + xy^2)^2 + (2.625 - x + xy^3)^2
 \end{align}$$
 
-$$\begin{align*}
+$$\large\begin{align*}
 -4 \leq x \leq 4\\
 -4 \leq y \leq 4
 \end{align*}$$
@@ -106,11 +117,11 @@ $$\begin{align*}
 ![2D and 3D plots of Beale function](image/benchmark_function/3.beale.jpeg)
 
 ### **Three-Hump Camel function**
-$$
-\begin{align}f(x,y) = 2x^2 - 1.05x^4 + \frac{x^6}{6} + xy + y^2
+$$\large\begin{align}
+f(x,y) = 2x^2 - 1.05x^4 + \frac{x^6}{6} + xy + y^2
 \end{align}$$
 
-$$\begin{align*}
+$$\large\begin{align*}
 -2 \leq x \leq 2\\
 -2 \leq y \leq 2
 \end{align*}$$
@@ -118,11 +129,11 @@ $$\begin{align*}
 ![2D and 3D plots of Three-hump camel function](image/benchmark_function/4.three-hump_camel.jpeg)
 
 ### **Himmelblau function**
-$$\begin{align}
+$$\large\begin{align}
 f(x,y) = (x^2 + y - 11)^2 + (x + y^2 - 7)^2
 \end{align}$$
 
-$$\begin{align*}
+$$\large\begin{align*}
 -6 \leq x \leq 6\\
 -6 \leq y \leq 6
 \end{align*}$$
@@ -130,11 +141,11 @@ $$\begin{align*}
 ![2D and 3D plots of Himmelblau function](image/benchmark_function/5.himmelblau.jpeg)
 
 ### **Muller-Brown Potential**
-$$
-\begin{align}E(x,y)=\sum_{i=1}^4A_iexp[a_i(x-X_i)^2+b_i(x-X_i)(y-Y_i)+c_i(y-Y_i)^2]
+$$\large\begin{align}
+E(x,y)=\sum_{i=1}^4A_iexp[a_i(x-X_i)^2+b_i(x-X_i)(y-Y_i)+c_i(y-Y_i)^2]
 \end{align}$$
 
-$$\begin{align*}
+$$\large\begin{align*}
 A_i &= [-200, -100, -170, 15]\\
 a_i &= [-1, -1, -6.5, 0.7]\\
 b_i &= [0, 0, 11, 0.6]\\
@@ -143,7 +154,7 @@ X_i &= [1, 0, -0.5, -1]\\
 Y_i &= [0, 0.5, 1.5, 1]\\
 \end{align*}$$
 
-$$\begin{align*}
+$$\large\begin{align*}
 -2.5 \leq x \leq 1.5\\
 -1.0 \leq y \leq 3.0
 \end{align*}$$
@@ -157,7 +168,7 @@ $\alpha$ は学習率、 $\beta、 \beta_1、 \beta_2$ は減衰率などを表�
 
 ### **Gradient descent**
 
-$$\begin{align}
+$$\large\begin{align}
 x_t = x_{t-1} - \alpha\nabla f_{t-1}
 \end{align}$$
 
@@ -165,7 +176,7 @@ Gradient descent (最急降下法) は、現在の解 $(x,y)$ における関数
 
 最急降下法の更新式について、テイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ としたとき、現在の点 $x=a$ における $f(x)$ の一次のテイラー展開は以下の式で表させる。
 
-$$\begin{align}
+$$\large\begin{align}
 f(x) \approx f(a)+\nabla f(x-a)
 \end{align}$$
 
@@ -177,7 +188,7 @@ f(x) \approx f(a)+\nabla f(x-a)
 
 ### **Momentum**
 
-$$\begin{align}
+$$\large\begin{align}
 v_t &= \beta v_{t-1} + (1-\beta)\nabla f_{t-1}\\
 x_t &= x_{t-1} - \alpha v_t
 \end{align}$$
@@ -190,7 +201,7 @@ Momentum の更新式では、過去の速度ベクトル $v_{t-1}$ を $\beta$ 
 
 さて、 $v$ の具体的な中身について確認してみよう。 $v$ の初期ベクトル $v_0$ をゼロベクトルとすると、 $v$ は以下のように変化していく。
 
-$$\begin{align}
+$$\large\begin{align}
 v_1 &= (1-\beta)\nabla f_0\\
 v_2 &= \beta(1-\beta)\nabla f_0 + (1-\beta)\nabla f_1\\
     &= (1-\beta)(\beta\nabla f_0 + \nabla f_1)\\
@@ -200,7 +211,7 @@ v_3 &= \beta\{(1-\beta)(\beta\nabla f_0 + \nabla f_1)\} + (1-\beta)\nabla f_2\\
 
 従って、T 回目の更新における $v_T$ は以下の式で表せる。
 
-$$\begin{align}
+$$\large\begin{align}
 v_T &= (1-\beta)(\beta^{T-1}\nabla f_0 + \beta^{T-2}\nabla f_1 + ... + \beta\nabla f_{T-2} + \nabla f_{T-1}\\
     &= (1-\beta)\sum_{t=1}^T \beta^{T-t}\nabla f_{t-1}
 \end{align}$$
@@ -209,7 +220,7 @@ v_T &= (1-\beta)(\beta^{T-1}\nabla f_0 + \beta^{T-2}\nabla f_1 + ... + \beta\nab
 
 ### **AdaGrad**
 
-$$\begin{align}
+$$\large\begin{align}
 v_t &= v_{t-1} + \nabla f_{t-1}^2 \\
 x_t &= x_{t-1} - \alpha\frac{1}{\sqrt{v_t}+\epsilon}\nabla f_{t-1}
 \end{align}$$
@@ -218,7 +229,7 @@ AdaGrad は、過去の勾配の情報を元に学習率を自動的に調整し
 
 AdaGrad の更新式を見ると、学習率 $\alpha$ がベクトル $v$ によって割られている。この $v$ の具体的な中身について確認してみよう。Momentum と同様に $v_0$ をゼロベクトルとすると、 $v$ は以下のように変化していく。
 
-$$\begin{align}
+$$\large\begin{align}
 v_1 &= \nabla f_0^2\\
 v_2 &= \nabla f_0^2 + \nabla f_1^2\\
 v_3 &= \nabla f_0^2 + \nabla f_1^2 + \nabla f_2^2
@@ -226,7 +237,7 @@ v_3 &= \nabla f_0^2 + \nabla f_1^2 + \nabla f_2^2
 
 従って、T 回目の更新における $v_T$ は以下の式で表せる。
 
-$$\begin{align}
+$$\large\begin{align}
 v_T &= \nabla f_0^2 + \nabla f_1^2 + ... + \nabla f_{T-2}^2 + \nabla f_{T-1}^2\\
     &= \sum_{t=1}^T \nabla f_{t-1}^2
 \end{align}$$
@@ -239,7 +250,7 @@ v_T &= \nabla f_0^2 + \nabla f_1^2 + ... + \nabla f_{T-2}^2 + \nabla f_{T-1}^2\\
 
 ### **RMSProp**
 
-$$\begin{align}
+$$\large\begin{align}
 v_t &= \beta v_{t-1} + (1-\beta)\nabla f_{t-1}^2\\
 x_t &= x_{t-1} - \alpha\frac{1}{\sqrt{v_t}+\epsilon}\nabla f_{t-1}
 \end{align}$$
@@ -250,7 +261,7 @@ RMSProp の更新式では、過去のベクトル $v_{t-1}$ を $\beta$ の重�
 
 さて、 $v$ の具体的な中身について確認してみよう。これまでと同様に $v$ の初期ベクトル $v_0$ をゼロベクトルとすると、 $v$ は以下のように変化していく。
 
-$$\begin{align}
+$$\large\begin{align}
 v_1 &= (1-\beta)\nabla f_0^2\\
 v_2 &= \beta(1-\beta)\nabla f_0^2 + (1-\beta)\nabla f_1^2\\
     &= (1-\beta)(\beta\nabla f_0^2 + \nabla f_1^2)\\
@@ -260,7 +271,7 @@ v_3 &= \beta\{(1-\beta)(\beta\nabla f_0^2 + \nabla f_1^2)\} + (1-\beta)\nabla f_
 
 従って、T 回目の更新における $v_T$ は以下の式で表せる。
 
-$$\begin{align}
+$$\large\begin{align}
 v_T &= (1-\beta)(\beta^{T-1}\nabla f_0^2 + \beta^{T-2}\nabla f_1^2 + ... + \beta\nabla f_{T-2}^2 + \nabla f_{T-1}^2\\
     &= (1-\beta)\sum_{t=1}^T \beta^{T-t}\nabla f_{t-1}^2
 \end{align}$$
@@ -269,14 +280,14 @@ Momentum の更新式における $v$ の一般項との違いは、勾配 $\nab
 
 ### **Adam**
 
-$$\begin{align}
+$$\large\begin{align}
 m_t &= \beta_1 m_{t-1} + (1-\beta_1)\nabla f_{t-1}\\
 v_t &= \beta_2 v_{t-1} + (1-\beta_2)\nabla f_{t-1}^2
 \end{align}$$
 
 バイアス補正を行い
 
-$$\begin{align}
+$$\large\begin{align}
 \hat{m_t} &= \frac{m_t}{1-\beta_1^t}\\
 \hat{v_t} &= \frac{v_t}{1-\beta_2^t}\\
 x_t       &= x_{t-1} - \alpha\frac{\hat{m_t}}{\sqrt{\hat{v_t}}+\epsilon}\\
@@ -284,7 +295,7 @@ x_t       &= x_{t-1} - \alpha\frac{\hat{m_t}}{\sqrt{\hat{v_t}}+\epsilon}\\
 
 上 3 つの式をまとめて以下の更新式を得る。
 
-$$\begin{align}
+$$\large\begin{align}
 x_t = x_{t-1} - \alpha\frac{\sqrt{1-\beta_2^t}}{1-\beta_1^t}\frac{m_t}{\sqrt{v_t}+\epsilon}
 \end{align}$$
 
@@ -294,14 +305,14 @@ Adam (Adaptive Moment Estimation) は Momentum と RMSProp を組み合わせた
 
 ### **AdaBelief**
 
-$$\begin{align}
+$$\large\begin{align}
 m_t &= \beta_1 m_{t-1} + (1-\beta_1)\nabla f_{t-1}\\
 s_t &= \beta_2 s_{t-1} + (1-\beta_2)(\nabla f_{t-1} - m_t)^2 + \epsilon
 \end{align}$$
 
 バイアス補正を行い
 
-$$\begin{align}
+$$\large\begin{align}
 \hat{m_t} &= \frac{m_t}{1-\beta_1^t}\\
 \hat{s_t} &= \frac{s_t}{1-\beta_2^t}\\
 x_t       &= x_{t-1} - \alpha\frac{\hat{m_t}}{\sqrt{\hat{s_t}}+\epsilon}\\
@@ -309,7 +320,7 @@ x_t       &= x_{t-1} - \alpha\frac{\hat{m_t}}{\sqrt{\hat{s_t}}+\epsilon}\\
 
 上 3 つの式をまとめて以下の更新式を得る。
 
-$$\begin{align}
+$$\large\begin{align}
 x_t = x_{t-1} - \alpha\frac{\sqrt{1-\beta_2^t}}{1-\beta_1^t}\frac{m_t}{\sqrt{s_t}+\epsilon}
 \end{align}$$
 
@@ -324,7 +335,7 @@ AdaBelief (Adapting Stepsizes by the Belief in Observed Gradients) は Adam を�
 
 ### **Newton's method**
 
-$$\begin{align}
+$$\large\begin{align}
 x_t = x_{t-1} - H^{-1}\nabla f_{t-1}
 \end{align}$$
 
@@ -332,7 +343,7 @@ Newton's method （ニュートン法）または Newton-Rapfson method（ニュ
 
 ニュートン法の更新式について、最急降下法と同様にテイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ とし、 $f(x)$ の二次のテイラー展開で得られた二次式（後述）が最小値を取る $x$ を $x_0$ とし、 $x_0$ と現在の位置の差分を $\Delta x$ とする。 $x = x_0 + \Delta x$ とすると、 $x$ における $f(x)$ の二次のテイラー展開は以下の式で表させる。
 
-$$\begin{align}
+$$\large\begin{align}
 f(x)=f(x_0+\Delta x) \approx f(\Delta x)+\nabla f(\Delta x)+\frac{1}{2}\Delta x^TH(\Delta x)\Delta x\\
 \end{align}$$
 
@@ -340,19 +351,19 @@ f(x)=f(x_0+\Delta x) \approx f(\Delta x)+\nabla f(\Delta x)+\frac{1}{2}\Delta x^
 
 まず
 
-$$\begin{align}
+$$\large\begin{align}
 \frac{df}{dx} = \frac{df}{d\Delta x}\frac{d \Delta x}{dx} = \frac{df}{d\Delta x}
 \end{align}$$
 
 なので
 
-$$\begin{align}
+$$\large\begin{align}
 \frac{df}{dx} = \frac{df}{d\Delta x} \approx 0 + \nabla f(\Delta x) + H(\Delta x)\Delta x
 \end{align}$$
 
 である。従って、二次式が最小値をとるときの $\Delta x$ は
 
-$$\begin{align}
+$$\large\begin{align}
 \Delta x = -H(\Delta x)^{-1}\nabla f(\Delta x)
 \end{align}$$
 
@@ -373,15 +384,21 @@ $$\begin{align}
 移動平均は、時系列データを平滑化する手法であり、主に**単純移動平均**と**加重移動平均**、**指数移動平均**の 3 種が用いられる。  
 ・単純移動平均: ある範囲のデータの平均をとって平滑化する。単純移動平均の一般式は以下のように表せる。
 
-$$y_t = \frac{x_t+x_{t-1}+x_{t-2}+...+x_{t-n+2}+x_{t-n+1}}{n}$$
+$$\large\begin{align}
+y_t = \frac{x_t+x_{t-1}+x_{t-2}+...+x_{t-n+2}+x_{t-n+1}}{n}
+\end{align}$$
 
 ・加重移動平均: 古いデータほど線形に重みを減少させ、平滑化を行う。この方法では、ある程度古いデータの重みは全て 0 になる。加重移動平均の一般式は以下のように表せる。
 
-$$y_t = \frac{nx_t+(n-1)x_{t-1}+(n-2)x_{t-2}...+2x_{t-n+2}+x_{t-n+1}}{n+(n-1)+(n-2)+...+2+1}$$
+$$\large\begin{align}
+y_t = \frac{nx_t+(n-1)x_{t-1}+(n-2)x_{t-2}...+2x_{t-n+2}+x_{t-n+1}}{n+(n-1)+(n-2)+...+2+1}
+\end{align}$$
 
 ・指数移動平均: 古いデータほど指数関数的に重みを減少させ、平滑化を行う。この方法では、古いデータの重みが完全に 0 になることはない。また、単純移動平均や加重移動平均では過去のデータを記憶しておかなければならないのに対し、指数移動平均は直前の移動平均だけを記憶しておけば良いというメリットもある。指数移動平均の一般式は以下のように表せる。
 
-$$y_t = (1-\alpha)x_{t-1} + \alpha x_t$$
+$$\large\begin{align}
+y_t = (1-\alpha)x_{t-1} + \alpha x_t
+\end{align}$$
 
 指数移動平均は、過去の情報に基づいて現在の値を計算し、滑らかな移動や更新を実現するという点で慣性 (モーメント) と共通している。Momentum・RMSProp・Adam の更新式は、勾配および勾配の二乗の指数移動平均を求めて解を更新する。
 
@@ -391,11 +408,13 @@ $$y_t = (1-\alpha)x_{t-1} + \alpha x_t$$
 
 一方、確率論におけるモーメントは確率変数 $X$ のべき乗の期待値である。 $X$ を確率変数、 $α$ を定数と、 $\mathbb{E}$ が期待値を表すとすると、 $α$ に関する $n$ 次モーメントの一般式は以下のように表せる。
 
-$$\mathbb{E}[(X-\alpha)^r]$$
+$$\large\begin{align}
+\mathbb{E}[(X-\alpha)^r]
+\end{align}$$
 
 特に $α$ が 0 のときは原点周りのモーメント、 $α$ が $X$ の期待値 $μ$ のときは期待値周りのモーメントと呼ばれることが多い。ここで、いくつかの統計量がモーメントで表せることを示す。
 
-$$\begin{align}
+$$\large\begin{align}
 \mu &= \mathbb{E}[X] = \frac{1}{n}\sum X\\
 \sigma^2 &= \mathbb{E}[(X-\mu)^2] = \frac{1}{n}\sum (X-\mu)^2\\
 \gamma &= \frac{\mathbb{E}[(X-\mu)^3]}{\sigma^3} = \frac{1}{n}\sum\frac{(X-\mu)^3}{\sigma^3}\\

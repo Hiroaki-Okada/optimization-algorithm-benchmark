@@ -24,10 +24,11 @@ def get_potential_surface(function, num=200):
 
 
 def plot_optimization_history(history, function):
-    x_history = [i[0] for i in history]
-    y_history = [i[1] for i in history]
-    z_history = [i[2] for i in history]
-    grad_history = [i[3] for i in history]
+    x_history = [[j[0] for j in i] for i in history]
+    y_history = [[j[1] for j in i] for i in history]
+    z_history = [[j[2] for j in i] for i in history]
+    grad_history = [[j[3] for j in i] for i in history]
+    colors = ['r.-', 'y.-', 'b.-']
 
     x, y, z = get_potential_surface(function)
 
@@ -36,7 +37,9 @@ def plot_optimization_history(history, function):
 
     # 2次元プロット（等高線プロット）
     ax1 = fig.add_subplot(131)
-    ax1.plot(x_history, y_history, 'r.-', zorder=5)
+
+    for x_l, y_l, color in zip(x_history, y_history, colors):
+        ax1.plot(x_l, y_l, color, zorder=5)
 
     if function.name == 'muller_brown_potential':
         contour = ax1.contourf(x, y, z, levels=function.levs, cmap='RdBu_r', extend='neither')
@@ -53,7 +56,9 @@ def plot_optimization_history(history, function):
 
     # 3次元プロット
     ax2 = fig.add_subplot(132, projection='3d')
-    ax2.plot(x_history, y_history, z_history, 'r.-', zorder=5)
+
+    for x_l, y_l, z_l, color in zip(x_history, y_history, z_history, colors):
+        ax2.plot(x_l, y_l, z_l, color, zorder=5)
 
     mask = z > function.max_f
     z[mask] = function.max_f
@@ -74,11 +79,11 @@ def plot_optimization_history(history, function):
 
     ax3 = fig.add_subplot(133)
 
-    itr = [i for i in range(len(grad_history))]
+    for grad_l, color in zip(grad_history, colors):
+        itr = [i for i in range(len(grad_l))]
+        ax3.plot(itr, grad_l, color)
 
-    ax3.plot(itr, grad_history)
     ax3.set_yscale('log')
-
     ax3.set_xlabel('Iteration', fontsize=15)
     ax3.set_ylabel('Gradient', fontsize=15)
     ax3.tick_params(labelsize=10)
