@@ -380,6 +380,156 @@ $$\large\begin{align}
 
 
 # Tips
+
+## **Jacobi 法**
+Jacobi（ヤコビ）法は、実対称行列の固有値と固有ベクトルを全て同時に求める手法である。今回は、2 次のヘッセ行列の固有値と固有ベクトルを求める場合に絞って説明する。  
+
+まず、前提知識を確認しておく。任意の N 次正方行列 A に対して
+
+$$\large\begin{align}
+Av = \omega v
+\end{align}$$
+
+が成り立つとき、 $\omega$ を固有値、 $v$ を固有ベクトルと呼ぶ。N 次正方行列には N 個の固有値と、それに対応する N 個の固有ベクトルが存在する。また、A に対して正則行列 P を用意し、P<sup>-1</sup>AP を対角行列にする操作を対角化と呼ぶ。即ち、
+
+$$\large\begin{align}
+P^{-1}AP &= 
+\begin{bmatrix}
+\omega_1 & 0\\
+0 & \omega_2
+\end{bmatrix}
+\end{align}$$
+
+このとき、P は 固有ベクトル $v$ を並べることで構築でき、得られた対角行列の対角成分 $\omega_1$ および $\omega_2$ が固有値である。これらを踏まえて jacobi 法について考える。まず、本プログラムで求められるヘッセ行列 $H(x)$ は 2×2 の実対称行列である。
+
+$$\large\begin{align}
+H(x) &= 
+\begin{bmatrix}
+\frac{\partial^2 f}{\partial x^2} & \frac{\partial^2 f}{\partial x \partial y}\\
+\frac{\partial^2 f}{\partial y \partial x} & \frac{\partial^2 f}{\partial y^2}
+\end{bmatrix}
+\end{align}$$
+
+この $H(x)$ が持つ 2 つの固有値と固有ベクトルを求めたい。上述の説明より、H(x) の固有値を求めるには、H(x) の固有ベクトルを並べた行列 P を用意して対角化を行い、得られた対角行列の対角成分を調べれば良い。この 2×2 の固有値問題を解くためには、以下の直行行列 U を見出せば良いことが知られている。ただし、教科書と表記を合わせるため、H(x) を O と表記している。
+
+$$\large\begin{align}
+\boldsymbol{U}^{\dagger} \boldsymbol{O U}=\left(\begin{array}{ll}
+U_{11} & U_{21} \\
+U_{12} & U_{22}
+\end{array}\right)\left(\begin{array}{ll}
+O_{11} & O_{12} \\
+O_{12} & O_{22}
+\end{array}\right)\left(\begin{array}{ll}
+U_{11} & U_{12} \\
+U_{21} & U_{22}
+\end{array}\right)=\omega=\left(\begin{array}{ll}
+\omega_1 & 0 \\
+0 & \omega_2
+\end{array}\right)
+\end{align}$$
+
+直行行列の性質より、U は以下の条件を満たす。
+
+$$\large\begin{align}
+\boldsymbol{U}^{\dagger} \boldsymbol{U}=\left(\begin{array}{ll}
+U_{11} U_{11}+U_{21} U_{21} & U_{11} U_{12}+U_{21} U_{22} \\
+U_{12} U_{11}+U_{22} U_{21} & U_{12} U_{12}+U_{22} U_{22}
+\end{array}\right)=\boldsymbol{I}=\left(\begin{array}{ll}
+1 & 0 \\
+0 & 1
+\end{array}\right)
+\end{align}$$
+
+このとき、U の 4 個の要素に対して 3 つの制約が課されているので、U の各要素はただ 1 つの変数で表現できる。具体的には
+
+$$\large\begin{align}
+\left(\begin{array}{cr}
+\cos \theta & \sin \theta \\
+\sin \theta & -\cos \theta
+\end{array}\right)\left(\begin{array}{cc}
+\cos \theta & \sin \theta \\
+\sin \theta & -\cos \theta
+\end{array}\right)=\left(\begin{array}{cc}
+\cos ^2 \theta+\sin ^2 \theta & 0 \\
+0 & \cos ^2 \theta+\sin ^2 \theta
+\end{array}\right)=1
+\end{align}$$
+
+なので、U は変数 θ を用いて以下のように表せる。
+
+$$\large\begin{align}
+\boldsymbol{U}=\left(\begin{array}{rr}
+\cos \theta & \sin \theta \\
+\sin \theta & -\cos \theta
+\end{array}\right)
+\end{align}$$
+
+これは、2×2 の直行行列のもっとも一般的な形である(らしい)。このとき
+
+$$\large\begin{align}
+\begin{aligned}
+& \boldsymbol{U}^{\dagger} \boldsymbol{O U}=\left(\begin{array}{rr}
+\cos \theta & \sin \theta \\
+\sin \theta & -\cos \theta
+\end{array}\right)\left(\begin{array}{ll}
+O_{11} & O_{12} \\
+O_{12} & O_{22}
+\end{array}\right)\left(\begin{array}{rr}
+\cos \theta & \sin \theta \\
+\sin \theta & -\cos \theta
+\end{array}\right) \\
+& =\left(\begin{array}{ll}
+O_{11} \cos ^2 \theta+O_{22} \sin ^2 \theta+O_{12} \sin 2 \theta & \frac{1}{2}\left(O_{11}-O_{22}\right) \sin 2 \theta-O_{12} \cos 2 \theta \\
+\frac{1}{2}\left(O_{11}-O_{22}\right) \sin 2 \theta-O_{12} \cos 2 \theta & O_{11} \sin ^2 \theta+O_{22} \cos ^2 \theta-O_{12} \sin 2 \theta
+\end{array}\right) \\
+&
+\end{aligned}
+\end{align}$$
+
+が対角行列になるためには
+
+$$\large\begin{align}
+\frac{1}{2}\left(O_{11}-O_{22}\right) \sin 2 \theta-O_{12} \cos 2 \theta=0
+\end{align}$$
+
+を満たす θ を求めればよい。そのような θ は
+
+$$\large\begin{align}
+\theta_0=\frac{1}{2} \tan ^{-1} \frac{2 O_{12}}{O_{11}-O_{22}}
+\end{align}$$
+
+で求められる。以上より、2 つの固有値は
+
+$$\large\begin{align}
+\begin{aligned}
+&\omega_1=O_{11} \cos ^2 \theta_0+O_{22} \sin ^2 \theta_0+O_{12} \sin 2 \theta_0\\
+&\omega_2=O_{11} \sin ^2 \theta_0+O_{22} \cos ^2 \theta_0-O_{12} \sin 2 \theta_0
+\end{aligned}
+\end{align}$$
+
+となる。また、U が 固有ベクトルを並べることで構築できることを思い出せば、2 つの固有ベクトルは
+
+$$\large\begin{align}
+\begin{aligned}
+&\left(\begin{array}{l}
+v_{11} \\
+v_{12}
+\end{array}\right)=\left(\begin{array}{c}
+\cos \theta_0 \\
+\sin \theta_0
+\end{array}\right)\\
+&\left(\begin{array}{l}
+v_{21} \\
+v_{22}
+\end{array}\right)=\left(\begin{array}{r}
+\sin \theta_0 \\
+-\cos \theta_0
+\end{array}\right)
+\end{aligned}
+\end{align}$$
+
+である。
+
 ## **移動平均**
 移動平均は、時系列データを平滑化する手法であり、主に**単純移動平均**と**加重移動平均**、**指数移動平均**の 3 種が用いられる。  
 ・単純移動平均: ある範囲のデータの平均をとって平滑化する。単純移動平均の一般式は以下のように表せる。
@@ -429,11 +579,6 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 
 このように、最適化と確率論の文脈においてモーメントは異なる意味を持つことに注意する（間違っていたら教えて下さい）。
 
-
-## **ヤコビ法**
-随時加筆予定。
-
-
 # 参考文献
 [最適化アルゴリズムを評価するベンチマーク関数まとめ](https://qiita.com/tomitomi3/items/d4318bf7afbc1c835dda)  
 [【決定版】スーパーわかりやすい最適化アルゴリズム -損失関数からAdamとニュートン法-](https://qiita.com/omiita/items/1735c1d048fe5f611f80#7-adam)  
@@ -451,9 +596,10 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 [共役勾配法](https://qiita.com/Dason08/items/27559e192a6a977dd5e5)  
 [非線形共役勾配法](https://ja.wikipedia.org/wiki/%E9%9D%9E%E7%B7%9A%E5%BD%A2%E5%85%B1%E5%BD%B9%E5%8B%BE%E9%85%8D%E6%B3%95)  
 [移動平均](https://ja.wikipedia.org/wiki/%E7%A7%BB%E5%8B%95%E5%B9%B3%E5%9D%87)  
-[モーメント(moment)を直感的・具体的に理解する　〜平均、分散、歪度、尖度 etc〜](https://www.hello-statisticians.com/explain-terms-cat/moment1.html)  
-
-
+[モーメント(moment)を直感的・具体的に理解する　〜平均、分散、歪度、尖度 etc〜](https://www.hello-statisticians.com/explain-terms-cat/moment1.html) 
+[【最適化問題の基礎】ニュートン法で停留点を探す（鞍点と固有値の関係）](https://science-log.com/%e6%95%b0%e5%ad%a6/%e3%80%90%e6%9c%80%e9%81%a9%e5%8c%96%e5%95%8f%e9%a1%8c%e3%81%ae%e5%9f%ba%e7%a4%8e%e3%80%91%e3%83%8b%e3%83%a5%e3%83%bc%e3%83%88%e3%83%b3%e6%b3%95%e3%81%a7%e9%9e%8d%e7%82%b9%e3%82%92%e6%8e%a2%e3%81%99/)  
+[新しい量子化学―電子構造の理論入門〈上〉](https://www.amazon.co.jp/%E6%96%B0%E3%81%97%E3%81%84%E9%87%8F%E5%AD%90%E5%8C%96%E5%AD%A6%E2%80%95%E9%9B%BB%E5%AD%90%E6%A7%8B%E9%80%A0%E3%81%AE%E7%90%86%E8%AB%96%E5%85%A5%E9%96%80%E3%80%88%E4%B8%8A%E3%80%89-Attila-Szabo/dp/4130621114)  
+[ヤコビ法 (固有値問題)](https://ja.wikipedia.org/wiki/%E3%83%A4%E3%82%B3%E3%83%93%E6%B3%95_(%E5%9B%BA%E6%9C%89%E5%80%A4%E5%95%8F%E9%A1%8C))  
 # ToDo 
 ・BFGS法を実装する
 
