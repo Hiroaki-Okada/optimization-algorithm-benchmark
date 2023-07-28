@@ -55,15 +55,15 @@ main 関数の引数の `optimizer_type` と `function` をそれぞれ指定し
 
 $$\large\begin{align}
 \nabla f(x) &= 
-\begin{bmatrix}
+\begin{pmatrix}
 \frac{\partial f}{\partial x}\\
 \frac{\partial f}{\partial y}
-\end{bmatrix}\\
+\end{pmatrix}\\
 H(x) &= 
-\large\begin{bmatrix}
+\large\begin{pmatrix}
 \frac{\partial^2 f}{\partial x^2} & \frac{\partial^2 f}{\partial x \partial y}\\
 \frac{\partial^2 f}{\partial y \partial x} & \frac{\partial^2 f}{\partial y^2}
-\end{bmatrix}
+\end{pmatrix}
 \end{align}$$
 
 なお、全ての微分は中心差分法を用いて計算される。
@@ -174,13 +174,13 @@ x_t = x_{t-1} - \alpha\nabla f_{t-1}
 
 Gradient descent (最急降下法) は、現在の解 $(x,y)$ における関数 $f$ の勾配ベクトル $\nabla f$ の方向 (=関数 $f$ の変化率が最も大きい方向) に解を更新する操作を繰り返し、関数の local minimum を探索するアルゴリズムである。「最も急な方向に降下する」ことが最急降下法という名前の由来であり、勾配法としては最も単純なアルゴリズムである。  
 
-最急降下法の更新式について、テイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ としたとき、現在の点 $x=a$ における $f(x)$ の一次のテイラー展開は以下の式で表させる。
+最急降下法の更新式について、テイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ としたとき、現在の点 $x_i$ における $f(x)$ の一次のテイラー展開は以下の式で表させる。
 
 $$\large\begin{align}
-f(x) \approx f(a)+\nabla f(x-a)
+f(x) = f(x_i)+\nabla f(x-x_i)
 \end{align}$$
 
-これは点 $(a, f(a))$ で $f(x)$ に接する接線の一次式である。従って、この一次式の傾き $\nabla f$ と逆の方向に進めば $f(x)$ の値を小さくできる。以上より、最急降下法の更新式は、注目している関数を現在の点周りで一次のテイラー展開により近似し、得られた一次式の傾きの情報を元に解を更新していることがわかる。最急降下法の更新式の概念図を以下に示した。  
+これは点 $(x_i, f(x_i))$ で $f(x)$ に接する接線の一次式である。従って、この一次式の傾き $\nabla f$ と逆の方向に進めば $f(x)$ の値を小さくできる。以上より、最急降下法の更新式は、注目している関数を現在の点周りで一次のテイラー展開により近似し、得られた一次式の傾きの情報を元に解を更新していることがわかる。最急降下法の更新式の概念図を以下に示した。  
 
 ![Gradient descent](image/optimizer/gradient_descent.JPG)
 
@@ -341,39 +341,57 @@ x_t = x_{t-1} - H^{-1}\nabla f_{t-1}
 
 Newton's method （ニュートン法）または Newton-Rapfson method（ニュートン・ラプソン法）は、現在の解 $(x,y)$ における関数 $f$ の勾配ベクトル $\nabla f$ およびヘッセ行列 $H$ の逆行列の情報を用いて解を更新する操作を繰り返し、関数の local minimum を探索するアルゴリズムである。 
 
-ニュートン法の更新式について、最急降下法と同様にテイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ とし、 $f(x)$ の二次のテイラー展開で得られた二次式（後述）が最小値を取る $x$ を $x_0$ とし、 $x_0$ と現在の位置の差分を $\Delta x$ とする。 $x = x_0 + \Delta x$ とすると、 $x$ における $f(x)$ の二次のテイラー展開は以下の式で表させる。
+ニュートン法の更新式について、最急降下法と同等にテイラー展開の観点から考えてみる。ベンチマーク関数を $f(x)$ とし、現在の点を $x_i$ とする。このとき、 $x_i$ 周りでの $f(x)$ の二次のテイラー展開は以下の式で表せる。
 
 $$\large\begin{align}
-f(x)=f(x_0+\Delta x) \approx f(\Delta x)+\nabla f(\Delta x)+\frac{1}{2}\Delta x^TH(\Delta x)\Delta x\\
+f(x) = f(x_i) + \nabla f(x_i)(x-x_i) + \frac{1}{2}H(x_i)(x-x_i)^2
 \end{align}$$
 
-これは点 $(a, f(a))$ で $f(x)$ に接する曲線の二次式である。この二次式が最小値をとるときの $\Delta x$ を求めれば、 $\Delta x$ だけ現在の解 $x$ を更新することで $f(x)$ の値も小さくできることが期待される。具体的には、二次式の微分が 0 となる点を求めれば良い。  
-
-まず
+これは、点 $(x_i, f(x_i))$ で $f(x)$ に接する二次曲線の式である。ここで、 $x_i$ と任意の点 $x$ との差を $\delta$ とすると、 $x-x_i = \delta$ なので、先ほどの二次式は
 
 $$\large\begin{align}
-\frac{df}{dx} = \frac{df}{d\Delta x}\frac{d \Delta x}{dx} = \frac{df}{d\Delta x}
+f(x_i+\delta) = f(x_i) + \nabla f(x_i)\delta + \frac{1}{2}H(x_i)\delta^2
+\end{align}$$
+
+と書き直せる。
+
+ニュートン法では、現在の解である $x_i$ を、上述の二次式が極値を取る $x$ に更新する。 $f(x)$ を二次近似して得られた二次式が極値を取る $x$ に移動すれば、 $f(x)$ の値も小さくできることが期待されるからだ。そのためには、二次式の微分が 0 となる $x$ を求めれば良い。まず
+
+$$\large\begin{align}
+\frac{df}{dx} = \frac{df}{d\delta}\frac{d\delta}{dx} = \frac{df}{d\delta}\frac{d(x-x_i)}{dx} = \frac{df}{d\delta}\cdot1 = \frac{df}{d\delta}
 \end{align}$$
 
 なので
 
 $$\large\begin{align}
-\frac{df}{dx} = \frac{df}{d\Delta x} \approx 0 + \nabla f(\Delta x) + H(\Delta x)\Delta x
+\frac{df}{d\delta} = 0
 \end{align}$$
 
-である。従って、二次式が最小値をとるときの $\Delta x$ は
+となる $x$ を求めれば良いことがわかる。また
 
 $$\large\begin{align}
-\Delta x = -H(\Delta x)^{-1}\nabla f(\Delta x)
+\frac{df}{d\delta} = 0 + \nabla f(x_i) + H(x_i)\delta
 \end{align}$$
 
-である。これはニュートン法の更新式における解の更新量と同じである。
+なので、この式が 0 となるときの $\delta$ は
 
-以上より、ニュートン法の更新式は、注目している関数を現在の点周りで二次のテイラー展開により近似し、得られた二次式が最小値を取る場所に解を更新していることがわかる。ニュートン法の更新式の概念図を以下に示した。  
+$$\large\begin{align}
+\delta = -H(x_i)^{-1}\nabla f(x_i)
+\end{align}$$
+
+である。以上より、 $x_i$ から $-H(x_i)^{-1}\nabla f(x_i)$ だけ移動すれば、二次式が極値をとる $x$ に移動できることがわかったので
+
+$$\large\begin{align}
+x = x_i -H(x_i)^{-1}\nabla f(x_i)
+\end{align}$$
+
+と更新すればよい。これがニュートン法の更新式である。
+
+以上より、ニュートン法の更新式は、注目している関数を現在の点周りで二次のテイラー展開により近似し、得られた二次式が極値を取る場所に解を更新していることがわかる。ニュートン法の更新式の概念図を以下に示した。  
 
 ![Newton's method](image/optimizer/newton_method.JPG)
 
-ニュートン法は二次収束することが知られており、一次収束する最急降下法よりも高速に最適化を発見できる。一方で、初期推定値によっては解が発散する可能性や、ヘッセ行列の計算には多くのコストを要するという問題点もある。特にヘッセ行列の計算コストの観点で、現実の最適化問題に対しては適用が困難な場合が多い。
+ニュートン法は二次収束することが知られており、一次収束する最急降下法よりも高速に最適化を発見できる。一方で、以下の 2 つの問題点もある。まず、ニュートンは $x_i$ の値によっては収束しない（=解が発散する可能性）がある点である。というのも、 $x_i$ におけるヘッセ行列 $H(x_i)$ は必ずしも正定値対称行列であるとは限らない（=固有値が全て正であるとは限らない）ので、 $\delta$ が $f(x)$ の降下方向であるとも限らず、解が発散する可能性がある。これに対し、BFGS 法などに代表される準ニュートン法は、 $H(x_i)$ をセカント条件を満たす正定値対称行列 $B_i$ で置き換えることで、解の更新方向を $f(x)$ の降下方向とする。2 爪の問題点は、そもそもヘッセ行列の計算には多くのコストを要するという点である。特にヘッセ行列の計算コストの観点で、ニュートン法は現実の最適化問題に対して適用困難な場合が多い。
 
 ### **BFGS method**
 未実装。随時加筆予定。
@@ -579,12 +597,14 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 
 このように、最適化と確率論の文脈においてモーメントは異なる意味を持つことに注意する（間違っていたら教えて下さい）。
 
-# 参考文献
+# 参考情報
 [最適化アルゴリズムを評価するベンチマーク関数まとめ](https://qiita.com/tomitomi3/items/d4318bf7afbc1c835dda)  
 [【決定版】スーパーわかりやすい最適化アルゴリズム -損失関数からAdamとニュートン法-](https://qiita.com/omiita/items/1735c1d048fe5f611f80#7-adam)  
 [「テイラー展開」の分かりやすい解説](https://science-log.com/%e6%95%b0%e5%ad%a6/%e3%80%8c%e3%83%86%e3%82%a4%e3%83%a9%e3%83%bc%e5%b1%95%e9%96%8b%e3%80%8d%e3%81%ae%e5%88%86%e3%81%8b%e3%82%8a%e3%82%84%e3%81%99%e3%81%84%e8%a7%a3%e8%aa%ac/)  
+[テイラー展開](https://eman-physics.net/math/taylor.html)  
 [接線の方程式の求め方【微分】法線の方程式も解説！](https://rikeilabo.com/tangent-and-normal)  
 [最急降下法とニュートン法の比較](http://techtipshoge.blogspot.com/2016/07/blog-post.html)  
+[【最適化問題の基礎】ニュートン法とヘッセ行列](https://science-log.com/%e6%95%b0%e5%ad%a6/%e3%80%90%e6%9c%80%e9%81%a9%e5%8c%96%e5%95%8f%e9%a1%8c%e3%81%ae%e5%9f%ba%e7%a4%8e%e3%80%91%e3%83%8b%e3%83%a5%e3%83%bc%e3%83%88%e3%83%b3%e6%b3%95%e3%81%a8%e3%83%98%e3%83%83%e3%82%bb%e8%a1%8c%e5%88%97/)  
 [6.1.4：Momentum【ゼロつく1のノート(実装)】](https://www.anarchive-beta.com/entry/2020/08/10/180000)  
 [6.1.5：AdaGrad【ゼロつく1のノート(実装)】](https://www.anarchive-beta.com/entry/2020/08/11/180000)  
 [6.1.x：RMSProp【ゼロつく1のノート(実装)】](https://www.anarchive-beta.com/entry/2020/08/12/180000)  
@@ -599,9 +619,12 @@ $\mu$ は $X$ の期待値であり、原点周りの 1 次モーメントであ
 [モーメント(moment)を直感的・具体的に理解する　〜平均、分散、歪度、尖度 etc〜](https://www.hello-statisticians.com/explain-terms-cat/moment1.html) 
 [【最適化問題の基礎】ニュートン法で停留点を探す（鞍点と固有値の関係）](https://science-log.com/%e6%95%b0%e5%ad%a6/%e3%80%90%e6%9c%80%e9%81%a9%e5%8c%96%e5%95%8f%e9%a1%8c%e3%81%ae%e5%9f%ba%e7%a4%8e%e3%80%91%e3%83%8b%e3%83%a5%e3%83%bc%e3%83%88%e3%83%b3%e6%b3%95%e3%81%a7%e9%9e%8d%e7%82%b9%e3%82%92%e6%8e%a2%e3%81%99/)  
 [新しい量子化学―電子構造の理論入門〈上〉](https://www.amazon.co.jp/%E6%96%B0%E3%81%97%E3%81%84%E9%87%8F%E5%AD%90%E5%8C%96%E5%AD%A6%E2%80%95%E9%9B%BB%E5%AD%90%E6%A7%8B%E9%80%A0%E3%81%AE%E7%90%86%E8%AB%96%E5%85%A5%E9%96%80%E3%80%88%E4%B8%8A%E3%80%89-Attila-Szabo/dp/4130621114)  
-[ヤコビ法 (固有値問題)](https://ja.wikipedia.org/wiki/%E3%83%A4%E3%82%B3%E3%83%93%E6%B3%95_(%E5%9B%BA%E6%9C%89%E5%80%A4%E5%95%8F%E9%A1%8C))  
+[ヤコビ法 (固有値問題)](https://ja.wikipedia.org/wiki/%E3%83%A4%E3%82%B3%E3%83%93%E6%B3%95_(%E5%9B%BA%E6%9C%89%E5%80%A4%E5%95%8F%E9%A1%8C))
+
 # ToDo 
-・BFGS法を実装する
+・BFGS法を実装する  
+・Adam の収束判定部分のコードを書き直す  
+・ $x$ などをベクトル表記に直したいけどめんどい
 
 <!--
 ## **gradient.py**
